@@ -15,24 +15,18 @@
  */
 package io.gatling.http.action.polling
 
-import akka.actor.{ ActorRef, Props }
-import io.gatling.core.result.writer.DataWriters
-import io.gatling.core.session._
-import io.gatling.http.action.UnnamedRequestAction
+import akka.actor.FSM
+import io.gatling.core.akka.BaseActor
+import io.gatling.core.session.Session
 
-object PollingStopAction {
-  def props(pollingName: String, dataWriters: DataWriters, next: ActorRef): Props =
-    Props(new PollingStopAction(pollingName, dataWriters, next))
-}
-class PollingStopAction(
-  pollingName: String,
-  dataWriters: DataWriters,
-  val next: ActorRef)
-    extends UnnamedRequestAction(dataWriters)
-    with PollingAction {
+private[polling] abstract class PollingFSM extends BaseActor with FSM[PollingState, PollingData]
 
-  override def sendRequest(requestName: String, session: Session) =
-    for {
-      pollingActor <- fetchPolling(pollingName, session)
-    } yield pollingActor ! StopPolling
-}
+private[polling] sealed trait PollingState
+private[polling] case object Uninitialized extends PollingState
+private[polling] case object PollingRequests extends PollingState
+
+private[polling] sealed trait PollingData
+private[polling] case object NoData extends PollingData
+private[polling] case class PollingRequestsData(update: Session => Session) extends PollingData
+
+private[polling] case object Poll

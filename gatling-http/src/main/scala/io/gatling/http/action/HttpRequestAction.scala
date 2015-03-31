@@ -95,7 +95,7 @@ class HttpRequestAction(httpRequestDef: HttpRequestDef, dataWriters: DataWriters
         session,
         httpRequest,
         responseBuilderFactory,
-        next: ActorRef)
+        next)
 
       HttpRequestAction.startHttpTransaction(tx)
     }
